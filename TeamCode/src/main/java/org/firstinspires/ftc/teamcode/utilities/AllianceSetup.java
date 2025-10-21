@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.utilities;
 
+// Thanks to Kalipso-Robotics
+//https://github.com/Kalipso-Robotics/FtcRobotController/tree/master/TeamCode
+
 public enum AllianceSetup {
 
     RED(-1),
