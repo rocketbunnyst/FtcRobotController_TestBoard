@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems.shooter;
+package org.firstinspires.ftc.teamcode.subsystems.launcher;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -10,31 +10,31 @@ import org.firstinspires.ftc.teamcode.utilities.Constants;
 
 // Thanks to https://github.com/14468-undefined/14468-DECODE-V2/blob/master/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystem/ShooterSubsystem.java
 
-public class Shooter extends SubsystemBase {
+public class Launcher extends SubsystemBase {
     //===========MOTORS==========\\
-    private final MotorEx shooterRight;
+    private final MotorEx launcherRight;
 //    private final MotorEx shooterLeft;
 
     //============Servos===========\\
     //private final Servo hood;
 
-    int targetRPM = Constants.shooterConstants.FAR_ZONE_SHOT_RPM;
+    int targetRPM = Constants.launcherConstants.FAR_ZONE_SHOT_RPM;
 
 //    private Telemetry telemetry;
 //    private HardwareMap hardwareMap;
 
-    public Shooter(HardwareMap hardwareMap, Telemetry telemetry) {
+    public Launcher(HardwareMap hardwareMap, Telemetry telemetry) {
 
         // ================== MOTORS ================== \\
-        shooterRight = new MotorEx(hardwareMap, "motor");
-//        shooterLeft = new MotorEx(hardwareMap, "shooterLeft");
+        launcherRight = new MotorEx(hardwareMap, "motor");
+//        shooterLeft = new MotorEx(hardwareMap, "launcherLeft");
 
         //set to vel control so its constant instead of just power
-        shooterRight.setRunMode(MotorEx.RunMode.VelocityControl);
+        launcherRight.setRunMode(MotorEx.RunMode.VelocityControl);
 //        shooterLeft.setRunMode(MotorEx.RunMode.VelocityControl);
 
         //reverse
-        shooterRight.setInverted(false);
+        launcherRight.setInverted(true);
 //        shooterLeft.setInverted(false);
 
         // ================== SERVOS ================== \\
@@ -43,15 +43,15 @@ public class Shooter extends SubsystemBase {
     }
 
     public void spinUpRight(){
-        shooterRight.setRunMode(Motor.RunMode.VelocityControl);
+        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
 //        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
 
         double velocity = rpmToTicksPerSecond(targetRPM);
-        shooterRight.setVelocity(velocity);
+        launcherRight.setVelocity(velocity);
     }
     public void spinUpLeft(){
 
-        shooterRight.setRunMode(Motor.RunMode.VelocityControl);
+        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
 //        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
 
         double velocity = rpmToTicksPerSecond(targetRPM);
@@ -61,10 +61,10 @@ public class Shooter extends SubsystemBase {
     public void spinUp() {
         double velocity = rpmToTicksPerSecond(targetRPM);
 
-        shooterRight.setRunMode(Motor.RunMode.VelocityControl);
+        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
 //        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
 
-        shooterRight.setVelocity(velocity);
+        launcherRight.setVelocity(velocity);
 //        shooterLeft.setVelocity(velocity);
 
     }
@@ -72,10 +72,10 @@ public class Shooter extends SubsystemBase {
     public void spinUpReverse(){
         double velocity = rpmToTicksPerSecond(targetRPM);
 
-        shooterRight.setRunMode(Motor.RunMode.VelocityControl);
+        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
 //        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
 
-        shooterRight.setVelocity(-velocity);
+        launcherRight.setVelocity(-velocity);
 //        shooterLeft.setVelocity(-velocity);
     }
 
@@ -88,13 +88,13 @@ public class Shooter extends SubsystemBase {
     public void stop() {
 
 //        shooterLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);//coast if power is 0
-        shooterRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+        launcherRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
 
 //        shooterLeft.setRunMode(Motor.RunMode.RawPower);
-        shooterRight.setRunMode(Motor.RunMode.RawPower);
+        launcherRight.setRunMode(Motor.RunMode.RawPower);
 
 //        shooterLeft.set(0);
-        shooterRight.set(0);
+        launcherRight.set(0);
 
 
     }
@@ -104,7 +104,7 @@ public class Shooter extends SubsystemBase {
         double velocity = rpmToTicksPerSecond(targetRPM);
 
 //        double avgVelocity = (shooterRight.getVelocity() + shooterLeft.getVelocity()) / 2.0; // use for 2 motors
-        double avgVelocity = (shooterRight.getVelocity()); //use for one motor
+        double avgVelocity = (launcherRight.getVelocity()); //use for one motor
 
         return Math.abs(avgVelocity - velocity) < 100;
     }
@@ -124,11 +124,11 @@ public class Shooter extends SubsystemBase {
     }
 
     public void printTelemetry(Telemetry telemetry) {
-        telemetry.addLine("SHOOTER SUBSYSTEM");
+        telemetry.addLine("LAUNCHER SUBSYSTEM");
         telemetry.addData("Target RPM", targetRPM);
-        telemetry.addData("Right RPM", tpstoRPM(shooterRight.getVelocity()));
+        telemetry.addData("Right RPM", tpstoRPM(launcherRight.getVelocity()));
         //        telemetry.addData("Left RPM", tpstoRPM(shooterLeft.getVelocity()));
-        telemetry.addData("Velocity in TPS", shooterRight.getVelocity());
+        telemetry.addData("Velocity in TPS", launcherRight.getVelocity());
         telemetry.addData("At Speed?", atSpeed());
         telemetry.update();
     }
