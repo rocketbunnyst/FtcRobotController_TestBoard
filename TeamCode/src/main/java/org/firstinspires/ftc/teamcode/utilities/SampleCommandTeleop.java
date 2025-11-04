@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.launcher.Launcher;
 
 public abstract class SampleCommandTeleop extends LinearOpMode {
@@ -11,6 +12,7 @@ public abstract class SampleCommandTeleop extends LinearOpMode {
     public GamepadEx g2;
 //    public BaseRobot robot;
     public Launcher shooter;
+    public IntakeSubsystem intake;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -19,6 +21,7 @@ public abstract class SampleCommandTeleop extends LinearOpMode {
 
 //        robot = new BaseRobot(hardwareMap, new Pose2d(0,0,0));
        shooter = new Launcher(hardwareMap, telemetry);
+       intake = new IntakeSubsystem(hardwareMap, telemetry);
 
         onInit();
         waitForStart();
