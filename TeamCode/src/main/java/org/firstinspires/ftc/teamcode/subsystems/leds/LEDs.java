@@ -10,6 +10,8 @@ import java.util.Map;
 public class LEDs implements LedsInterface{
 
     RevBlinkinLedDriver blinkin;
+    LedMode currentMode;
+    RevBlinkinLedDriver.BlinkinPattern currentPattern;
 
     private static final Map<LedMode, RevBlinkinLedDriver.BlinkinPattern> modeLookup = new HashMap<>();
 
@@ -39,8 +41,20 @@ public class LEDs implements LedsInterface{
     public void setMode(LedMode mode) {
         if (modeLookup.containsKey(mode)) {
             blinkin.setPattern(modeLookup.get(mode));
+            currentPattern = modeLookup.get(mode);
+            currentMode = mode;
         } else {
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+            currentMode = LedMode.BLACK;
+            currentPattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
         }
+    }
+
+    public LedMode getCurrentMode() {
+        return currentMode;
+    }
+
+    public RevBlinkinLedDriver.BlinkinPattern getCurrentPattern() {
+        return currentPattern;
     }
 }
