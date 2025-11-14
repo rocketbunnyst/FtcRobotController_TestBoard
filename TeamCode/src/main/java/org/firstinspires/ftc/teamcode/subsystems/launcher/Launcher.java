@@ -23,11 +23,7 @@ public class Launcher extends SubsystemBase {
     private boolean active;
 
     // --- PIDF Coefficients ---
-    //working values on November 7th, 2025
-/*    public double kP = 20.0;
-    public double kI = 0.0;
-    public double kD = 5.0;
-    public double kF = 24.0;*/
+    //working values on November 14th, 2025
     public static double kP = 20;
     public static double kI = 0.0;
     public static double kD = 5.0;
