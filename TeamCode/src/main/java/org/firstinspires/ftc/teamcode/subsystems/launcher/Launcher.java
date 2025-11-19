@@ -1,136 +1,241 @@
 package org.firstinspires.ftc.teamcode.subsystems.launcher;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utilities.Constants;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 // Thanks to https://github.com/14468-undefined/14468-DECODE-V2/blob/master/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystem/ShooterSubsystem.java
 
 public class Launcher extends SubsystemBase {
     //===========MOTORS==========\\
-    private final MotorEx launcherRight;
-//    private final MotorEx shooterLeft;
+    private DcMotorEx launcherRight;
+//    private DcMotorEx launcherLeft;
 
-    //============Servos===========\\
-    //private final Servo hood;
+    // --- Shooter Constants ---
+    public static double TARGET_RPM = 2500.0;         // desired shooter RPM
+    private static double MOTOR_RPM = 6000;          // motor RPM (based on max motor rpm)
+    private static double GEAR_RATIO = 1;            // gear ratio from motor to shooter
+    private static double TICKS_PER_REV = 28;       // motor encoder ticks per revolution
+    private boolean active;
 
-    int targetRPM = Constants.launcherConstants.FAR_ZONE_SHOT_RPM;
+    // --- PIDF Coefficients ---
+    //working values on November 14th, 2025
+    public static double kP = 20;
+    public static double kI = 0.0;
+    public static double kD = 5.0;
+    public static double kF = 24.0;
 
-//    private Telemetry telemetry;
-//    private HardwareMap hardwareMap;
+    /**
+     * Initialises the shooter in the hardwareMap, sets default shooter values
+     * @param hardwareMap pulls HardwareMap from teleOp class
+     *                    to initialise motor
+     * telemetry Allows the class to add telemetry to the phone
+     * @param defaultTargetRPM Sets the default target RPM of the shooter
+     *                        Set to the initial target RPM of your
+     *                        shooter
+     * @param defaultMotorRPM Sets the default RPM of the motor
+     *                       Set to the RPM of the motor being used
+     * @param defaultGearRatio Sets the default shooter gear ratio
+     *                        Set to the gear ratio between the motor and shooterwheel
+     * @param defaultTicks Sets the default ticks of the motor
+     *                    Set to the encoder ticks of your motor
+     */
+    public Launcher(HardwareMap hardwareMap, double defaultTargetRPM,
+                            double defaultMotorRPM, double defaultGearRatio, double defaultTicks) {
 
+        //telemetry = new MultipleTelemetry(telemetry, dash.getTelemetry());
+
+
+        launcherRight = hardwareMap.get(DcMotorEx.class, "motor");
+        //launcherLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
+        launcherRight.setDirection(DcMotorEx.Direction.REVERSE);
+
+
+
+//        shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        shooterLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        shooterLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        launcherRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcherRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        // Configs defaults
+        setTargetRPM(defaultTargetRPM);
+        setMotorRPM(defaultMotorRPM);
+        setGearRatio(defaultGearRatio);
+        setTicksPerRev(defaultTicks);
+        active = Math.abs(getTargetRPM()) > 0;
+
+        // Apply initial PIDF coefficients
+        applyPIDF();
+
+        //telemetry.addLine("shooter Init Done");
+    }
+
+    /// Only use if the constants in this file are correct
     public Launcher(HardwareMap hardwareMap, Telemetry telemetry) {
-
-        // ================== MOTORS ================== \\
-        launcherRight = new MotorEx(hardwareMap, "motor");
-//        shooterLeft = new MotorEx(hardwareMap, "launcherLeft");
-
-        //set to vel control so its constant instead of just power
-        launcherRight.setRunMode(MotorEx.RunMode.VelocityControl);
-//        shooterLeft.setRunMode(MotorEx.RunMode.VelocityControl);
-
-        //reverse
-        launcherRight.setInverted(true);
-//        shooterLeft.setInverted(false);
-
-        // ================== SERVOS ================== \\
-        //hood = hardwareMap.get(Servo.class, "hood");
-
+        this(hardwareMap, TARGET_RPM, MOTOR_RPM, GEAR_RATIO, TICKS_PER_REV);
     }
 
-    public void spinUpRight(){
-        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
-//        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
-
-        double velocity = rpmToTicksPerSecond(targetRPM);
-        launcherRight.setVelocity(velocity);
+    // --- PIDF ---
+    /**
+     * Sets shooter PIDF coefficients manually
+     * @param kf Set to a low value, just enough that the shooter wheel
+     *           begins to rotate
+     * @param kp Increase kP after kF until the shooter wheel reaches the target speed
+     * @param kd Try changing the target speed of the shooter from a low value
+     *           to a high value and vise versa. Use this to reduce the
+     *           oscillations when changing speeds
+     * @param ki Most times this won't need to be tuned
+     */
+    public void setShooterPIDF(double kf, double kp, double kd, double ki) {
+        kP = kp;
+        kI = ki;
+        kD = kd;
+        kF = kf;
+        applyPIDF();
     }
-    public void spinUpLeft(){
 
-        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
-//        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
-
-        double velocity = rpmToTicksPerSecond(targetRPM);
-//        shooterLeft.setVelocity(velocity);
+    /** Applies current shooter velocity PIDF coefficients */
+    public void applyPIDF() {
+        //shooterLeft.setVelocityPIDFCoefficients(kP, kI, kD, kF);
+        launcherRight.setVelocityPIDFCoefficients(kP, kI, kD, kF);
     }
-    // Spin up to speed
+
+    // --- Constants Control ---
+    /**
+     * Changes the target RPM of the shooter
+     * @param targetRPM Set to the target RPM of the shooter
+     */
+    public void setTargetRPM(double targetRPM) {
+        TARGET_RPM = targetRPM;
+    }
+
+    /**
+     * Returns the target RPM of the shooter, used to check if velo
+     * is within tolerance
+     * @return returns the target RPM of the shooter
+     */
+    public double getTargetRPM() {
+        return TARGET_RPM;
+    }
+
+    /**
+     * Changes the RPM of the motor
+     * @param motorRPM Set to the RPM of the motor
+     *
+     */
+    public void setMotorRPM(double motorRPM) {
+        MOTOR_RPM = motorRPM;
+    }
+
+    /**
+     * Changes the gear ratio between the motor and the shooter
+     * @param gearRatio Set to the gear ratio used between the
+     *                  motor and shooter
+     *      1.0 is a 1:1 gear ratio
+     *      2.5 is a 2.5:1 gear increase
+     *      0.5 is a 0.5:1 gear reduction
+     */
+    public void setGearRatio(double gearRatio) {
+        GEAR_RATIO = gearRatio;
+    }
+
+    /**
+     * Returns the current gear ratio of the shooter
+     * @return returns the current GEAR_RATIO of the shooter system
+     */
+    public double getGearRatio() {
+        return GEAR_RATIO;
+    }
+
+    /**
+     * Changes the Ticks Per Revolution of the motor
+     * Called Encoder Resolution on gobilda website
+     * @param TicksPerRev Set to the Ticks per rev of the motor
+     *                    being used
+     */
+    public void setTicksPerRev(double TicksPerRev) {
+        TICKS_PER_REV = TicksPerRev;
+    }
+
+    /**
+     * Returns the current Ticks Per Rev of the shooter
+     * @return returns the TICKS_PER_REV of the shooter flywheel
+     */
+    public double getTicksPerRev() {
+        return TICKS_PER_REV;
+    }
+
+    /**
+     * Calculates ticks per second based on target RPM
+     * Sets the target velocity
+     * */
     public void spinUp() {
-        double velocity = rpmToTicksPerSecond(targetRPM);
+        double targetTicksPerSec = ((TARGET_RPM / GEAR_RATIO) * TICKS_PER_REV) / 60;
+        //shooterLeft.setVelocity(targetTicksPerSec);
+        launcherRight.setVelocity(targetTicksPerSec);
 
-        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
-//        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
 
-        launcherRight.setVelocity(velocity);
-//        shooterLeft.setVelocity(velocity);
-
+        active = Math.abs(getTargetRPM()) > 0;
     }
 
-    public void spinUpReverse(){
-        double velocity = rpmToTicksPerSecond(targetRPM);
+    /** Stops all shooter motion immediately. */
+    public void eStop() {
+        //shooterLeft.setPower(0);
+        //launcherLeft.setVelocity(0);
 
-        launcherRight.setRunMode(Motor.RunMode.VelocityControl);
-//        shooterLeft.setRunMode(Motor.RunMode.VelocityControl);
-
-        launcherRight.setVelocity(-velocity);
-//        shooterLeft.setVelocity(-velocity);
+        launcherRight.setPower(0);
+        launcherRight.setVelocity(0);
     }
 
-    public void setTargetRPM(int RPM){
-        targetRPM = RPM;
+    /**
+     * Gets shooter current velocity
+     * @return Returns current shooter RPM based on the
+     *         motor rpm, ticks per rev, and gear ratio
+     */
+    public double getLauncherRPM() {
+        double leftCurrTicksPerSec = launcherRight.getVelocity(); // ticks/s of motor
+        double rightCurrTicksPerSec = launcherRight.getVelocity(); // ticks/s of motor
+
+        double averageTPS = (leftCurrTicksPerSec+rightCurrTicksPerSec)/2.0;
+        double currMotorRPM = (averageTPS * 60.0) / TICKS_PER_REV;
+        double currLauncherRPM = currMotorRPM * GEAR_RATIO;
+
+        return currLauncherRPM;
     }
 
-
-    // Stop both wheels
-    public void stop() {
-
-//        shooterLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);//coast if power is 0
-        launcherRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
-
-//        shooterLeft.setRunMode(Motor.RunMode.RawPower);
-        launcherRight.setRunMode(Motor.RunMode.RawPower);
-
-//        shooterLeft.set(0);
-        launcherRight.set(0);
-
-
+    /**
+     * Gets shooter motor current velocity
+     * @return Returns motor voltage
+     */
+    public double getMotorVoltage() {
+        double leftAmps = launcherRight.getCurrent(CurrentUnit.AMPS);
+        double rightAmps = launcherRight.getCurrent(CurrentUnit.AMPS);
+        return (leftAmps + rightAmps)/2.0;
     }
 
-    //make sure they are close to right speed
-    public boolean atSpeed() {
-        double velocity = rpmToTicksPerSecond(targetRPM);
-
-//        double avgVelocity = (shooterRight.getVelocity() + shooterLeft.getVelocity()) / 2.0; // use for 2 motors
-        double avgVelocity = (launcherRight.getVelocity()); //use for one motor
-
-        return Math.abs(avgVelocity - velocity) < 100;
+    public boolean isActive() {
+        return active;
     }
 
-    // convert rpm to tps
-    private static final double TICKS_PER_REV = 28; //TODO: Tune
-    private double rpmToTicksPerSecond(double rpm) {
-        return (rpm * TICKS_PER_REV) / 60.0;
-    }
-    private double tpstoRPM(double tps){
-        return (tps * 60) / TICKS_PER_REV;
-    }
-
-
-    public int getCurrentRPM() {
-        return targetRPM;
+    public boolean isAtTargetSpeed() {
+        return ((getLauncherRPM() > (getTargetRPM() - 200)) && (getLauncherRPM() < (getTargetRPM() + 100)) && getLauncherRPM() != 0);
     }
 
     public void printTelemetry(Telemetry telemetry) {
         telemetry.addLine("LAUNCHER SUBSYSTEM");
-        telemetry.addData("Target RPM", targetRPM);
-        telemetry.addData("Right RPM", tpstoRPM(launcherRight.getVelocity()));
-        //        telemetry.addData("Left RPM", tpstoRPM(shooterLeft.getVelocity()));
-        telemetry.addData("Velocity in TPS", launcherRight.getVelocity());
-        telemetry.addData("At Speed?", atSpeed());
+        telemetry.addData("Target RPM", TARGET_RPM);
+        telemetry.addData("Current RPM", getLauncherRPM());
+        telemetry.addData("At Speed?", isAtTargetSpeed());
         telemetry.update();
     }
-
 }
+

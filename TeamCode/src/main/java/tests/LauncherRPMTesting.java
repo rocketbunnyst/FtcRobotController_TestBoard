@@ -21,15 +21,12 @@ public class LauncherRPMTesting extends SampleCommandTeleop {
     @Override
     public void onStart() {
         //DPAD_UP = RPM + 100; DPAD_DOWN = RPM - 100;
-        g1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(() -> launcher.setTargetRPM(launcher.getCurrentRPM() - 100));
-        g1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(() -> launcher.setTargetRPM(launcher.getCurrentRPM() + 100));
+        g1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(() -> launcher.setTargetRPM(launcher.getLauncherRPM() - 100));
+        g1.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(() -> launcher.setTargetRPM(launcher.getLauncherRPM() + 100));
 
         //X = SPIN UP SHOOTER
         g1.getGamepadButton(GamepadKeys.Button.X).whileHeld(launcher::spinUp);
-        g1.getGamepadButton(GamepadKeys.Button.Y).whileHeld(launcher::stop);
-
-
-
+        g1.getGamepadButton(GamepadKeys.Button.Y).whileHeld(launcher::eStop);
 
     }
 
@@ -49,7 +46,7 @@ public class LauncherRPMTesting extends SampleCommandTeleop {
 
     @Override
     public void onStop() {
-        launcher.stop();
+        launcher.eStop();
     }
 
 }

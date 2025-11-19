@@ -11,7 +11,7 @@ public abstract class SampleCommandTeleop extends LinearOpMode {
     public GamepadEx g1;
     public GamepadEx g2;
 //    public BaseRobot robot;
-    public Launcher shooter;
+    public Launcher launcher;
     public IntakeSubsystem intake;
 
     @Override
@@ -20,7 +20,7 @@ public abstract class SampleCommandTeleop extends LinearOpMode {
         g2 = new GamepadEx(gamepad2);
 
 //        robot = new BaseRobot(hardwareMap, new Pose2d(0,0,0));
-       shooter = new Launcher(hardwareMap, telemetry);
+       launcher = new Launcher(hardwareMap, telemetry);
        intake = new IntakeSubsystem(hardwareMap, telemetry);
 
         onInit();

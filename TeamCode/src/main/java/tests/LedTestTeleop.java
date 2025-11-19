@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utilities;
+package tests;
 
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -32,6 +32,8 @@ public class LedTestTeleop extends SampleCommandTeleop {
     @Override
     public void onLoop() {
         telemetry.addLine("LED CONTROLS");
+        telemetry.addData("Current Mode", leds.getCurrentMode());
+        telemetry.addData("Current Pattern", leds.getCurrentPattern());
         telemetry.addLine("Press X for team colors");
         telemetry.addLine("Press Y for alliance blue");
         telemetry.addLine("Press A for intaking front");
