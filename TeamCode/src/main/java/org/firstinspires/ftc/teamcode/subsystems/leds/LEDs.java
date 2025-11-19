@@ -20,9 +20,9 @@ public class LEDs implements LedsInterface{
         modeLookup.put(LedMode.TEAM_COLORS, RevBlinkinLedDriver.BlinkinPattern.RAINBOW_FOREST_PALETTE);
         modeLookup.put(LedMode.ALLIANCE_RED, RevBlinkinLedDriver.BlinkinPattern.BREATH_RED);
         modeLookup.put(LedMode.ALLIANCE_BLUE, RevBlinkinLedDriver.BlinkinPattern.BREATH_BLUE);
-        modeLookup.put(LedMode.INTAKING_FRONT, RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_LAVA_PALETTE );
-        modeLookup.put(LedMode.INTAKING_REAR, RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_FOREST_PALETTE);
-        modeLookup.put(LedMode.INTAKING_THRU, RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_RAINBOW_PALETTE);
+        modeLookup.put(LedMode.INTAKING_FRONT, RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_FOREST_PALETTE );
+        modeLookup.put(LedMode.INTAKING_REAR, RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE);
+        modeLookup.put(LedMode.INTAKING_THRU, RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_RAINBOW_PALETTE);
         modeLookup.put(LedMode.GREEN_NEXT, RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN);
         modeLookup.put(LedMode.PURPLE_NEXT, RevBlinkinLedDriver.BlinkinPattern.VIOLET);
         modeLookup.put(LedMode.BLACK, RevBlinkinLedDriver.BlinkinPattern.BLACK);
